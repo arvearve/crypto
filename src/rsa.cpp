@@ -203,7 +203,7 @@ void Rsa::printKeys(){
     cout << "p:\t" << p << endl;
     cout << "q:\t" << q << endl;
     cout << "theta:\t" << theta << endl;
-    cout << "n:\t" << n << endl;
-    cout << "e:\t" << e << endl;
-    cout << "d:\t" << d << endl;
+    cout << "n (pubkey):\t" << n << endl;
+    cout << "e:(pubkey)\t" << e << endl;
+    cout << "d:(privkey)\t" << d << endl << endl;
 }

@@ -10,7 +10,14 @@ Building and running
 ```
 $ cd build
 $ cmake .. && make
-$ ./rsa
+$ ./rsa-server <port> <p> <q> <e>
+$ ./attacker <host> <port>
 ```
 
-Requires cmake, make, c++11 compiler.
+example numbers:
+```
+$ ./rsa-server 31337 97 103 31
+$ ./attacker localhost 31337
+```
+
+Requires cmake, make, and C++11 compiler support. (tested with Clang)

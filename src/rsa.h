@@ -44,6 +44,7 @@ public:
         d = ModInverse(e, theta);
         ef = &Rsa::ModExp;
     }
+    Rsa(){}
 
     void printKeys();
     num encrypt(const num &M);
