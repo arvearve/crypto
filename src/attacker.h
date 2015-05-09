@@ -21,7 +21,7 @@ typedef ttmath::Int<32> num;
 struct TimedResponse {
     std::string message;
     std::string response;
-    std::chrono::duration<long long, std::ratio<1, 1000000000> > duration;
+    std::chrono::duration<long long, std::ratio<1, 1000000000l> > duration;
 };
 
 std::ostream& operator<<(std::ostream& os, const TimedResponse& ts){

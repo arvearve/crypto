@@ -29,7 +29,7 @@ void Attacker::perform_attack(){
  */
 TimedResponse Attacker::sign_message(const std::string &message){
     // Record start and end time in nanoseconds.
-    std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long long, std::ratio<1, 1000000> > > start, end;
+    std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long long, std::ratio<1, 1000000000l> > > start, end;
     TimedResponse result;
     result.message = message;
     ssize_t n;
