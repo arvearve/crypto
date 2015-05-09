@@ -48,5 +48,12 @@ public:
     }
     void perform_attack();
 };
+void simulate_attack(int number_messages,int exponent,int index);
+num nPrime(num n, num r);
+long numBits(const num &n);
+std::pair<num, bool> MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n);
+num ModInverse(num a, num b);
+TimedResponse sign_message2(const std::string &message);
+std::string binary(unsigned x);
 
 #endif /* defined(__rsa__attacker__) */
