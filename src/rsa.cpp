@@ -176,7 +176,7 @@ long Rsa::numBits(const num &n){
  * using the selected exponentiation algorithm.
  */
 num Rsa::encrypt(const num &M){
-    return (this->*ef)(M, e, n);
+    return (this->ef)(M, e, n);
 }
 
 /*
@@ -184,7 +184,7 @@ num Rsa::encrypt(const num &M){
  * Uses the selected exponentiation algorithm.
  */
 num Rsa::decrypt(const num &C){
-    return  (this->*ef)(C, d, n);
+    return  (this->ef)(C, d, n);
 }
 
 /*

@@ -15,7 +15,7 @@
 #include "lib/ttmath.h"
 class Rsa;
 typedef ttmath::Int<32> num; // 1024 bit
-typedef num (Rsa::*expFunc)(const num&, const num&, const num&);
+typedef num (*expFunc)(const num&, const num&, const num&);
 enum ExpType {
     POWERLADDER,
     MODEXP,
@@ -27,13 +27,15 @@ class Rsa {
 private:
     num p, q, theta, d;
     expFunc ef;
-    num MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n);
-    num MontgomeryProductSleep(const num &a, const num &b, const num &nprime, const num &r, const num &n);
-    void nPrime(const num n, num &r, num &nPrime);
-    num ModExp(const num &M, const num &d, const num &n);
-    num ModExpSleep(const num &M, const num &d, const num &n);
-    num PoweringLadder(const num &M, const num &d, const num &n);
-    num ModInverse(const num number, const num n);
+public:
+    /* These could probably be in a RSAMath module */
+    static num MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n);
+    static num MontgomeryProductSleep(const num &a, const num &b, const num &nprime, const num &r, const num &n);
+    static void nPrime(const num n, num &r, num &nPrime);
+    static num ModExp(const num &M, const num &d, const num &n);
+    static num ModExpSleep(const num &M, const num &d, const num &n);
+    static num PoweringLadder(const num &M, const num &d, const num &n);
+    static num ModInverse(const num number, const num n);
     static long numBits(const num &n);
 public:
     num e, n;

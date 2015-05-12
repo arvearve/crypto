@@ -15,7 +15,9 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <chrono>
-#include "lib/ttmath.h"
+#include <vector>
+#include "../lib/ttmath.h"
+#include "../rsa.h"
 
 typedef ttmath::Int<32> num;
 struct TimedResponse {
@@ -37,8 +39,14 @@ private:
     struct sockaddr_in server_addr;
     int sock;
     TimedResponse sign_message(const std::string &message);
+    TimedResponse sign_message(const int message);
+    int current_bit;
+
 public:
-    Attacker(const char* host, const int port){
+    int public_n, public_e;
+    int derived_exponent;
+    int messages_per_bit;
+    Attacker(const char* host, const int port):messages_per_bit(100){
         hostent *hp = gethostbyname(host);
         bzero(&server_addr,sizeof(server_addr));
         memcpy((void *)&server_addr.sin_addr, hp->h_addr_list[0], hp->h_length);
@@ -47,13 +55,11 @@ public:
         sock = socket(AF_INET,SOCK_DGRAM,0);
     }
     void perform_attack();
+    void simulate_attack(int number_messages,int exponent,int index);
+    bool ModExpBoolean(const num &M, const num &d, const num &n);
+    num MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n, bool &step4);
+    void attack_next_bit();
+
 };
-void simulate_attack(int number_messages,int exponent,int index);
-num nPrime(num n, num r);
-long numBits(const num &n);
-std::pair<num, bool> MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n);
-num ModInverse(num a, num b);
-TimedResponse sign_message2(const std::string &message);
-std::string binary(unsigned x);
 
 #endif /* defined(__rsa__attacker__) */
