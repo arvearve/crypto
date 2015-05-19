@@ -70,11 +70,13 @@ int serve(const int portno){
         mesg[bytes] = 0; // Null terminate the received string
         std::cout << "Asked to sign message: " << mesg;
         num signature = rsa.sign(mesg);
-        std::cout << ". Sending response: " << signature << std::endl;
         std::string string_result;
         signature.ToString(string_result);
         sendto(sockfd,string_result.c_str(),string_result.size(),0,(struct sockaddr *)&cliaddr,sizeof(cliaddr));
         bzero(mesg, 1024);
+
+        std::cout << ". Sending response: " << signature << std::endl;
+
     }
 }
 

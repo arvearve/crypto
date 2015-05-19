@@ -16,6 +16,7 @@
 #include <string.h>
 #include <chrono>
 #include <vector>
+#include <fstream>
 #include "../lib/ttmath.h"
 #include "../rsa.h"
 
@@ -28,9 +29,10 @@ struct TimedResponse {
 
 std::ostream& operator<<(std::ostream& os, const TimedResponse& ts){
     os
-    << "Message: " << ts.message
-    << "\nSigned: " << ts.response
-    << "\nDuration:" << ts.duration.count() << " nanoseconds\n";
+    << ts.message << "," << ts.duration.count();
+//    << "Message: " << ts.message
+//    << "\nSigned: " << ts.response
+//    << "\nDuration:" << ts.duration.count() << " nanoseconds\n";
     return os;
 }
 
@@ -54,11 +56,13 @@ public:
         server_addr.sin_port=htons(port);
         sock = socket(AF_INET,SOCK_DGRAM,0);
     }
+    bool key_found();
     void perform_attack();
     void simulate_attack(int number_messages,int exponent,int index);
     bool ModExpBoolean(const num &M, const num &d, const num &n);
     num MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n, bool &step4);
     void attack_next_bit();
+    void saveCSV(const std::string filename, const std::vector<TimedResponse> trueSet, const std::vector<TimedResponse> falseSet) const;
 
 };
 

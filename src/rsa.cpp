@@ -126,7 +126,7 @@ num Rsa::MontgomeryProductSleep(const num &a, const num &b, const num &nprime, c
     num m = t * nprime % r;
     num u = (t + m*n)/r;
     if(u >=n) {
-        this_thread::sleep_for(chrono::milliseconds(5));
+        this_thread::sleep_for(chrono::milliseconds(10));
         return u-n;
     }
     else { return u; }
@@ -206,4 +206,9 @@ void Rsa::printKeys(){
     cout << "n (pubkey):\t" << n << endl;
     cout << "e:(pubkey)\t" << e << endl;
     cout << "d:(privkey)\t" << d << endl << endl;
+    printf("d as bit string:\n");
+    for (int i = numBits(d)-1; i>=0; i--) {
+        cout << d.GetBit(i);
+    }
+    cout << endl;
 }
