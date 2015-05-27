@@ -41,13 +41,13 @@ private:
     struct sockaddr_in server_addr;
     int sock;
     TimedResponse sign_message(const std::string &message);
-    TimedResponse sign_message(const int message);
+    TimedResponse sign_message(const num &message);
     int current_bit;
 
 public:
-    int public_n, public_e;
-    int derived_exponent;
-    int messages_per_bit;
+    num public_n, public_e;
+    num derived_exponent;
+    num messages_per_bit;
     Attacker(const char* host, const int port):messages_per_bit(100){
         hostent *hp = gethostbyname(host);
         bzero(&server_addr,sizeof(server_addr));

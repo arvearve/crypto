@@ -75,7 +75,7 @@ num Rsa::ModExpSleep(const num &M, const num &d, const num &n){
     long k = numBits(d) - 1; // Loop over bit indices. [0, k-1]
     for (; k >= 0 ; k--) {
         x_bar = MontgomeryProductSleep(x_bar, x_bar, nprime, r, n);
-        if (d.GetBit(k)){
+        if (d.GetBit(k) == 1){
             x_bar = MontgomeryProductSleep(M_bar, x_bar, nprime, r, n);
         }
     }
@@ -126,7 +126,7 @@ num Rsa::MontgomeryProductSleep(const num &a, const num &b, const num &nprime, c
     num m = t * nprime % r;
     num u = (t + m*n)/r;
     if(u >=n) {
-        this_thread::sleep_for(chrono::milliseconds(10));
+        this_thread::sleep_for(chrono::milliseconds(2));
         return u-n;
     }
     else { return u; }

