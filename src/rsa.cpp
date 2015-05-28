@@ -126,7 +126,7 @@ num Rsa::MontgomeryProductSleep(const num &a, const num &b, const num &nprime, c
     num m = t * nprime % r;
     num u = (t + m*n)/r;
     if(u >=n) {
-        this_thread::sleep_for(chrono::milliseconds(2));
+        this_thread::sleep_for(chrono::milliseconds(5));
         return u-n;
     }
     else { return u; }

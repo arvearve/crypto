@@ -20,7 +20,7 @@
 #include "../lib/ttmath.h"
 #include "../rsa.h"
 
-typedef ttmath::Int<32> num;
+typedef ttmath::Int<16> num;
 struct TimedResponse {
     std::string message;
     std::string response;
