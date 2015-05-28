@@ -118,32 +118,32 @@ def attack(dd, n):
 		(m_true, m_false) = get_message_groups(newkey, n, nn, r, j)
 		if len(m_true)==0 or len(m_false)==0:
 			(m_true, m_false) = get_message_groups(newkey, n, nn, r,j)
-			# Count total number of subtractions for each set (simulates time)
-			true_sub_count = false_sub_count = 0
-			for m in m_true:
-				(c, t_count) = rsa(m, d, n, nn, r)
-				true_sub_count += t_count
-			for m in m_false:
-				(c, f_count) = rsa(m, d, n, nn, r)
-				false_sub_count += f_count
-			# Take average number of subtractions per message in two groups
-			tavg = round(true_sub_count/(1.0*len(m_true)), 6)
-			favg = round(false_sub_count/(1.0*len(m_false)), 6)
-			# If difference is high, guess the bit as 1, else guess it as 0
-		
-			print "j=",j,"\td[j]=",d[j],"\tDiff=",abs(tavg-favg),"\tTavg:",tavg,"\tFavg:",favg
+		# Count total number of subtractions for each set (simulates time)
+		true_sub_count = false_sub_count = 0
+		for m in m_true:
+			(c, t_count) = rsa(m, d, n, nn, r)
+			true_sub_count += t_count
+		for m in m_false:
+			(c, f_count) = rsa(m, d, n, nn, r)
+			false_sub_count += f_count
+		# Take average number of subtractions per message in two groups
+		tavg = round(true_sub_count/(1.0*len(m_true)), 6)
+		favg = round(false_sub_count/(1.0*len(m_false)), 6)
+		# If difference is high, guess the bit as 1, else guess it as 0
+	
+		print "j=",j,"\td[j]=",d[j],"\tDiff=",abs(tavg-favg),"\tTavg:",tavg,"\tFavg:",favg
 
-			if abs(tavg-favg)>1.0:
-				newkey += '1'
-			else:
-				newkey += '0'
-			print "Original key:\t", d
+		if abs(tavg-favg)>1.0:
+			newkey += '1'
+		else:
+			newkey += '0'
+		print "Original key:\t", d
 
-			print "Guessed key:\t", newkey
-			if d==newkey:
-				print "Guessed Correctly!"
-			else:
-				print "Attack failed. Try again."
+		print "Guessed key:\t", newkey
+		if d==newkey:
+			print "Guessed Correctly!"
+		else:
+			print "Attack failed. Try again."
 
 if __name__ == "__main__":
 	d = 85
@@ -155,11 +155,13 @@ if __name__ == "__main__":
 	#d = 219924798127249
 	d = 85
 	d = 45479
-	d = 235714334261836
-	n = 2147483629 * 1073741789
+	#d = 235714334261836
+	n = 2305842913650672281
 	print "d=\t", d
 	print "n=\t", n
 	if len(sys.argv)>2:
 		d = int(sys.argv[1])
 		n = int(sys.argv[2])
+
+
 	attack(d, n)
