@@ -14,7 +14,7 @@
 
 #include "lib/ttmath.h"
 class Rsa;
-typedef ttmath::Int<32> num; // 1024 bit
+typedef ttmath::Int<16> num; // 16 words. 16*64 = 1024 bit
 typedef num (*expFunc)(const num&, const num&, const num&);
 enum ExpType {
     POWERLADDER,
