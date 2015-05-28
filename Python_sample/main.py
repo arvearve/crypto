@@ -73,8 +73,9 @@ def rsa_sim(m, d, n, nn, r, j):
 
 	dd = d[:j]
 	dd += '1'
+
 	k = len(dd)
-	#print "dd=",dd
+
 	sub = False
 	for i in range(0, k):
 		cc, tmp = MonPro(cc,cc, n, nn, r)
@@ -116,8 +117,11 @@ def attack(dd, n):
 	for j in range(1, k):
 		# For each bit in d, get two message sets
 		(m_true, m_false) = get_message_groups(newkey, n, nn, r, j)
+		print len(m_true),len(m_false)
+
 		if len(m_true)==0 or len(m_false)==0:
 			(m_true, m_false) = get_message_groups(newkey, n, nn, r,j)
+
 		# Count total number of subtractions for each set (simulates time)
 		true_sub_count = false_sub_count = 0
 		for m in m_true:
@@ -153,7 +157,7 @@ if __name__ == "__main__":
 	#d = 321474812
 	#n = 2147483647
 	#d = 219924798127249
-	d = 85
+	#d = 85
 	d = 45479
 	#d = 235714334261836
 	n = 2305842913650672281
