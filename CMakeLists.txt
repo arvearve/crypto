@@ -4,6 +4,4 @@ SET(CMAKE_BUILD_TYPE Release)
 SET(PROJECT_SOURCE_DIR src)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") # for gcc >= 4.7
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/lib)
-ADD_EXECUTABLE(rsa-server src/rsa.cpp src/rsa-server.cpp)
-ADD_EXECUTABLE(attacker src/attacker/attacker.cpp src/rsa.cpp)
 ADD_EXECUTABLE(csv src/csv.cpp src/rsa.cpp)
