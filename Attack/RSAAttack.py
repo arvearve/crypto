@@ -2,6 +2,7 @@ from pprint import pprint
 import csv
 import math
 from random import randint
+from multiprocessing import Process, Queue
 import sys
 
 def ModInverse(a, n):
@@ -69,17 +70,43 @@ def rsa_sim(m, d, n, nPrime, r, j):
 	x, tmp = MongomeryProduct(x_bar, 1, n, nPrime, r)
 	return x, sub
 
-def split_messages(d, n, nPrime, r, bit,data):
-	""" Splits a data set based on the subtraction in montgomery exponentiation."""
-	mlist = data
-	m_true = []
-	m_false = []
+def do_sim(q_t, q_f, mlist, d, n, nPrime, r, bit):
+	t = []
+	f = []
 	for m in mlist:
 		c, bucket = rsa_sim(m[0], d, n, nPrime, r, bit)
 		if bucket:
-			m_true.append(m)
+			t.append(m)
 		else:
-			m_false.append(m)
+			f.append(m)
+	q_t.put(t)
+	q_f.put(f)
+
+def split_messages(d, n, nPrime, r, bit,data):
+	""" Splits a data set based on the subtraction in montgomery exponentiation."""
+	mlist = data
+	q_t = Queue()
+	q_f = Queue()
+	processes = []
+	start = 0
+	numProcs = 8
+	NP = 0
+	chunk = len(mlist)//numProcs
+	while start < len(mlist):
+		p = Process(target=do_sim, args=(q_t, q_f, mlist[start:start+chunk], d, n, nPrime, r, bit))
+		NP += 1
+		p.start()
+		start += chunk
+		processes.append(p)
+	
+	m_true = []
+	m_false = []
+	for i in range(NP):
+		m_true += q_t.get()
+		m_false += q_f.get()
+
+	while processes:
+		processes.pop().join()
 	return (m_true, m_false)
 
 def nPrime(n):
