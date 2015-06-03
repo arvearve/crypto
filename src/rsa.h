@@ -25,7 +25,7 @@ enum ExpType {
 class Rsa {
 
 private:
-    num p, q, theta, d;
+    num p, q, theta;
     expFunc ef;
 public:
     /* These could probably be in a RSAMath module */
@@ -38,7 +38,7 @@ public:
     static num ModInverse(const num number, const num n);
     static long numBits(const num &n);
 public:
-    num e, n;
+    num e, n, d;
     Rsa(const num p, const num q, const num e):p(p),q(q),e(e){
         n = p*q;
         theta = (p-1)*(q-1);

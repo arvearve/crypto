@@ -52,7 +52,13 @@ num bigrand(num max = 0){
     return (max == 0) ? result : result % max;
 }
 
+
+void teste(){
+    std::cout << rsa.sign(1283) << std::endl;
+}
+
 int main(int argc, const char * argv[]) {
+
     srandom(time(NULL)); // Seed the RNG
     if (argc != 5) {
         printf("Usage: ./rsa-server <p> <q> <e> <message count>\n");
@@ -66,7 +72,12 @@ int main(int argc, const char * argv[]) {
     rsa.setExpFunc(MODEXP_SLEEP);
 
     printf("Using the following keys:\n");
+    rsa.d = 7;
     rsa.printKeys();
+
+    teste();
+
+
     timed_sign(atoi(argv[4]));
     return 0;
 }
@@ -82,6 +93,8 @@ void timed_sign(const int messageCount){
     std::ofstream csvfile;
 
     csvfile.open("pleb.csv");
+    csvfile << "N,E" << std::endl;
+    csvfile << rsa.n << "," << rsa.e << std::endl;
     csvfile << "message,signature,duration" << std::endl;
     timepoint start, end;
     num message;

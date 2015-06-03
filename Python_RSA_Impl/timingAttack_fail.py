@@ -2,15 +2,6 @@ import math, random
 from pprint import pprint
 
 
-def nPrime(n):
-	""" Calculates r^{-1} and n' as used in Montgomery exponentiation"""
-	# n is a k-bit number.
-	# r should be 2^k
-	k = math.floor(math.log2(int(n))) + 1
-	r = int(math.pow(2, k))
-	rInverse = ModInverse(r, n)
-	nPrime = (r * rInverse -1) // n
-	return (r, nPrime)
 
 
 def ModInverse(a, n):

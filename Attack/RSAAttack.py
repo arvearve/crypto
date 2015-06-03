@@ -1,12 +1,8 @@
+from pprint import pprint
 import csv
-from math import log, ceil
+import math
 from random import randint
 import sys
-
-data = []
-with open('1m_udoo.csv', 'rb') as f:
-    reader = csv.reader(f)
-    data = list(reader)
 
 def ModInverse(a, n):
 	""" Calculates the modular inverse of a mod n.
@@ -23,36 +19,6 @@ def ModInverse(a, n):
 		t = t + n
 	return t
 
-def ext_euclid2(r, n):
-	r_ = ModInverse(r, n)
-	if r_<0:
-		r_ += n
-	n_ = (1-r*r_)/n
-	return (r_, (-1)*n_)
-
-
-def eea(a, b):
-	g0, g1, u0, u1, v0, v1 = a, b, 1, 0, 0, 1
-	while g1!=0:
-		q = g0/g1
-		g0, g1 = g1, g0-g1*q
-		u0, u1 = u1, u0-u1*q
-		v0, v1 = v1, v0-v1*q
-	return (u0, v0)
-
-
-def MonPro(a_, b_, n, nn, r):
-	t = a_*b_
-	#t = (a*r%n)*(b*r%n)
-	m = (t*nn)%r
-	#u = (t+m*n)>>int(log(r,2))
-	u = (t+m*n)/r
-	#print "u =", u, "n=", n
-	if u >= n:
-		return (u-n,True)
-	else:
-		return (u, False)
-
 def MongomeryProduct(a, b,n,nprime,r):
 	""" Montgomery product."""
 	t = a * b
@@ -60,135 +26,153 @@ def MongomeryProduct(a, b,n,nprime,r):
 	u = (t + m*n)/r
 	return (u-n,True) if (u >= n) else (u,False)
 
-def rsa(m, d, n, nn, r):
+def rsa(m, d, n, nPrime, r):
+	""" Sign a message using the provided key.
+		This is used to detect whether we have guessed the correct key.
+		We sign a random message from the data set, and if we end up with a
+		signature that matches the corresponding signature in the data set,
+		we are done.
+	"""
 	mm = (m*r)%n
 	x_bar = (1*r)%n
 	k = len(d)
 	sub_count = 0
 	for i in range(0, k):
 		sub = False
-		x_bar, tmp = MongomeryProduct(x_bar,x_bar, n, nn, r)
+		x_bar, tmp = MongomeryProduct(x_bar,x_bar, n, nPrime, r)
 		if d[i]=='1':
-			x_bar, sub = MongomeryProduct(mm, x_bar, n, nn, r)
+			x_bar, sub = MongomeryProduct(mm, x_bar, n, nPrime, r)
 
 		sub_count += int(sub)
-	x, tmp = MongomeryProduct(x_bar, 1, n, nn, r)
+	x, tmp = MongomeryProduct(x_bar, 1, n, nPrime, r)
 	return x, sub_count
 
 
-def rsa_sim(m, d, n, nn, r, j):
+def rsa_sim(m, d, n, nPrime, r, j):
+	""" Simulates rsa signing with the current derived key.
+		Calculates whether a subtraction was made during step4
+		in the final Montgomery multiplication. 
+	"""
 	mm = (m*r)%n
 	x_bar = (1*r)%n
-	
 	k = len(d)
-
 	dd = d[:j]
 	dd += '1'
-
 	k = len(dd)
-
 	sub = False
 	for i in range(0, k):
-		x_bar, tmp = MongomeryProduct(x_bar,x_bar, n, nn, r)
+		x_bar, tmp = MongomeryProduct(x_bar,x_bar, n, nPrime, r)
 		#sub = True
 		if dd[i]=='1':
-			x_bar, sub = MongomeryProduct(mm, x_bar, n, nn, r)
+			x_bar, sub = MongomeryProduct(mm, x_bar, n, nPrime, r)
 			#print sub
-	x, tmp = MongomeryProduct(x_bar, 1, n, nn, r)
+	x, tmp = MongomeryProduct(x_bar, 1, n, nPrime, r)
 	return x, sub
 
-def get_r(n):
-	return int(pow(2, ceil(log(n,2))))
-
-def message_sets(d, n, nn, r, j,data):
+def split_messages(d, n, nPrime, r, bit,data):
+	""" Splits a data set based on the subtraction in montgomery exponentiation."""
 	mlist = data
 	m_true = []
 	m_false = []
 	for m in mlist:
-		c, bucket = rsa_sim(int(m[0]), d, n, nn, r, j)
+		c, bucket = rsa_sim(m[0], d, n, nPrime, r, bit)
 		if bucket:
 			m_true.append(m)
 		else:
 			m_false.append(m)
 	return (m_true, m_false)
 
+def nPrime(n):
+	""" Calculates r^{-1} and n' as used in Montgomery exponentiation"""
+	# n is a k-bit number.
+	# r should be 2^k
+	k = math.floor(math.log(int(n), 2)) + 1
+	r = int(math.pow(2, k))
+	rInverse = ModInverse(r, n)
+	nPrime = (r * rInverse -1) // n
+	return (r, nPrime)
 
-def RSAAttack(dd, n,data):
-	r = get_r(n)
-	(rr, nn) = ext_euclid2(r, n)
-	d = bin(dd)[2:]
-	print "binary d=",d
-	#k = len(d)
+def RSAAttack(n,data, ratio):
+
+	""" Attempt to recover the private key from a data set. The public key is konwn, i.e. we know 
+		the modulus.
+		The data set should contain a list of messages, their signatures, and the time the server took
+		to sign that message.
+	"""
+	(r, n_prime) = nPrime(n)
 	# Assume First bit of key is 1
 	newkey = '1'
-	j = 1
+	bit = 1
 	finished = False
 	while(not finished):
+		# Split the data set into two groups, based on subtraction in Montgomery.
+		(m_true, m_false) = split_messages(newkey, n, n_prime, r, bit, data)
+		# Write the two sets to csv files so they can be plotted or analyzed further
+		with open(path+'/'+'%04d'%bit+'.dat', 'w') as f: # 0001.csv 0002.csv etc. One csv for each bit.
+			f.write("message,signature,duration,step4\n")
+			for el in m_true:
+				f.write("%s,1\n" % ','.join(map(str, el)))
+			for el in m_false:
+				f.write("%s,2\n" % ','.join(map(str, el)))
 
+		# Calculate average signing time for each set
+		avg = lambda items: float(sum(items)) / len(items)
+		tavg = map(avg, zip(*m_true))[2]
+		favg = map(avg, zip(*m_false))[2]
 
-		# For each bit in d, get two message sets
-		(m_true, m_false) = message_sets(newkey, n, nn, r, j,data)
+		print "Ratio: \t",tavg/favg, "\tDifference:", tavg-favg
 
-
-		if len(m_true)==0 or len(m_false)==0:
-			(m_true, m_false) = message_sets(newkey, n, nn, r,j)
-
-
-
-		# Count total number of subtractions for each set (simulates time)
-		true_sub_count = false_sub_count = 0
-		for m in m_true:
-			true_sub_count += int(m[2])
-
-		for m in m_false:
-			false_sub_count += int(m[2])
-
-		# Take average number of subtractions per message in two groups
-		tavg = round(true_sub_count/(1.0*len(m_true)), 6)
-		favg = round(false_sub_count/(1.0*len(m_false)), 6)
-		# If difference is high, guess the bit as 1, else guess it as 0
-		
-		#print "j=",j,"\tDiff=",abs(tavg-favg),"\tTavg:",tavg,"\tFavg:",favg
-		print "Ratio:",tavg/favg
-
-
-		# With sleep - 1.08
-		#
-		# 1.000005
-		# 0.999985296678
-		# 0.999998070523
-		if abs(tavg/favg)>0.999980:
+		# Guess bit based on ratio between the average times
+		if tavg-favg > ratio:
 			newkey += '1'
+			print "Guessing next bit is 1."
 		else:
 			newkey += '0'
-		print "Original key:\t", d
+			print "Guessing next bit is 0."
+		print "Derived key: ", newkey
 
-		print "Guessed key:\t", newkey
-
-		testMessage = int(data[0][0])
-
-		signMessage,c = rsa(testMessage,str(newkey),n,nn,r)
-
-		if signMessage==int(data[0][1]):
-			print "Guessed Correctly!"
+		testMessage1 = data[0][0]
+		testMessage2 = data[1][0]
+		# Check if we found the correct key, or should continue 
+		signMessage1, c = rsa(testMessage1, str(newkey), n, n_prime, r)
+		signMessage2, c = rsa(testMessage2, str(newkey), n, n_prime, r)	
+		if signMessage1==data[0][1] and signMessage2 == data[1][1]:
+			print "Guessed Correctly! Private key is: \t", newkey
 			finished = True
-		else:
-			print "Attack failed. Try again."
+		bit+=1 # go to next bit.
 
-		j+=1
 if __name__ == "__main__":
-
-	d = 2527
-	#d = 235714334261836
-	n = 2305842913650672281
-	n = 97*103
-	n = 1970929544600547009951195551285008926853396879274216401752268706841404681558486301260625047332466057195397288315196808109669482273081696371319566859742602315869521815253148612244617512958426682609530067
-	d = 1163785823534064241437529417636255480894345979128639185727288316788206331796547032762922747175973442139244048601883626914666088356996564090134699203869084536887381697250036676671119041666458278166394977
-	print "d=\t", d
-	print "n=\t", n
+	""" Read in a .csv file containing a list of messages, signatures, and the duration of the signing operation.
+		Try to recover the private key used to sign the messages based on the timing information.
+	"""
+	data = []
+	if len(sys.argv) == 3:
+		path = sys.argv[1]
+		difference = sys.argv[2]
+	else:
+		path = 'output/2ms_sleep_33bit_key'
+		difference = 4500000
+		print "usage: python RSAAttack.py <path/to/dataset> <difference>"
+		print "the data should be in a file called data.csv, in the path given."
+		print " <difference> is the difference in nanoseconds between trueSet and falseSet required to guess that the bit is 1."
+		print "using defaults:", path, difference
 	
-
-
-RSAAttack(d, n,data)
-
-
+	with open(path+'/data.csv', 'rb') as f:
+		_ = f.readline() # Ignore first line (which is a column description)
+		n, e = f.readline().split(',') # read in public key
+		n = int(n)
+		e = int(e)
+		_=f.readline() # ignore third line (which is a column description)
+		data = [[int(x) for x in line.split(',')] for line in f] # read in signature data.
+	# n = 97*103
+	# n = 1970929544600547009951195551285008926853396879274216401752268706841404681558486301260625047332466057195397288315196808109669482273081696371319566859742602315869521815253148612244617512958426682609530067
+	print "n: ", n, "difference cutoff: ", difference, "path:", path
+	# Differences found to be good:
+	# 10k_2ms_sleep_new_key: 4476826
+	# dataNoSleep: No luck :(
+	# Ratios found to be good
+	# dataset: 10k messages, 2ms sleep: 1.08
+	# 1.000005
+	# 0.999985296678
+	# 0.999998070523
+	RSAAttack(n,data, int(difference))
