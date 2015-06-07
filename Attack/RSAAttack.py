@@ -147,10 +147,10 @@ def RSAAttack(n,data, ratio):
 		tavg = map(avg, zip(*m_true))[2]
 		favg = map(avg, zip(*m_false))[2]
 
-		print "Ratio: \t",tavg/favg, "\tDifference:", tavg-favg
+		print "Ratio: \t",tavg/favg, "\tDifference:", abs(tavg-favg)
 
 		# Guess bit based on ratio between the average times
-		if tavg-favg > ratio:
+		if abs(tavg-favg) > ratio:
 			newkey += '1'
 			print "Guessing next bit is 1."
 		else:

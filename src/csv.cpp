@@ -7,8 +7,6 @@
 //
 
 #include <stdio.h>
-
-
 #include <stdio.h>
 #include <fstream>
 #include <stdlib.h>
@@ -92,7 +90,7 @@ void timed_sign(const int messageCount){
     printf("Signing %d random messages (this could take a while)....\n", messageCount);
     std::ofstream csvfile;
 
-    csvfile.open("pleb.csv");
+    csvfile.open("data.csv");
     csvfile << "N,E" << std::endl;
     csvfile << rsa.n << "," << rsa.e << std::endl;
     csvfile << "message,signature,duration" << std::endl;
